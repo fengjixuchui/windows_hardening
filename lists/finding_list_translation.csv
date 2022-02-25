@@ -351,6 +351,7 @@ Id,CategoryEN,NameEN,Language,Category,Name
 200,"Administrative Templates: Windows Components","Windows Installer: Allow user control over installs",DE,"Administrative Vorlagen: Windows-Komponenten","Windows Installer: Benutzersteuerung bei Installationen zulassen"
 199,"Administrative Templates: Windows Components","Windows Installer: Always install with elevated privileges",DE,"Administrative Vorlagen: Windows-Komponenten","Windows Installer: Immer mit erhöhten Rechten installieren"
 303,"Administrative Templates: Windows Components","Windows Installer: Always install with elevated privileges",DE,"Administrative Vorlagen: Windows-Komponenten","Windows Installer: Immer mit erhöhten Rechten installieren"
+1657,"Administrative Templates: Windows Components","Windows Installer: Disable Co-Installer (USB AutoInstall)",,,
 201,"Administrative Templates: Windows Components","Windows Installer: Prevent Internet Explorer security prompt for Windows Installer scripts",DE,"Administrative Vorlagen: Windows-Komponenten","Windows Installer: IE-Sicherheitshinweis für Windows Installer-Skripts verhindern"
 202,"Administrative Templates: Windows Components","Windows Logon Options: Sign-in and lock last interactive user automatically after a restart",DE,"Administrative Vorlagen: Windows-Komponenten","Windows-Anmeldeoptionen: Automatisches Anmelden des letzten interaktiven Benutzers nach einem vom System initiierten Neustart"
 744,"Administrative Templates: Windows Components","Windows Media Player: Playback: Prevent Codec Download",DE,"Administrative Vorlagen: Windows-Komponenten","Windows Media Player: Wiedergabe: Codec-Download verhindern"
@@ -612,6 +613,8 @@ Id,CategoryEN,NameEN,Language,Category,Name
 690,"Microsoft Defender Application Guard","Turn on Microsoft Defender Application Guard in Managed Mode",,,
 245,"Microsoft Defender Exploit Guard","ASR: Block Adobe Reader from creating child processes",DE,"Microsoft Defender Exploit Guard","ASR: Adobe Reader am Erstellen von untergeordneten Prozessen hindern"
 244,"Microsoft Defender Exploit Guard","ASR: Block Adobe Reader from creating child processes (Policy)",DE,"Microsoft Defender Exploit Guard","ASR: Adobe Reader am Erstellen von untergeordneten Prozessen hindern (Richtlinie)"
+227,"Microsoft Defender Exploit Guard","ASR: Block JavaScript or VBScript from launching downloaded executable content",DE,"Microsoft Defender Exploit Guard","ASR: JavaScript und VBScript am Starten heruntergeladener ausführbarer Inhalte hindern"
+226,"Microsoft Defender Exploit Guard","ASR: Block JavaScript or VBScript from launching downloaded executable content (Policy)",DE,"Microsoft Defender Exploit Guard","ASR: JavaScript und VBScript am Starten heruntergeladener ausführbarer Inhalte hindern (Richtlinie)"
 221,"Microsoft Defender Exploit Guard","ASR: Block Office applications from creating child processes",DE,"Microsoft Defender Exploit Guard","ASR: Alle Office-Anwendungen am Erstellen von untergeordneten Prozessen hindern"
 220,"Microsoft Defender Exploit Guard","ASR: Block Office applications from creating child processes (Policy)",DE,"Microsoft Defender Exploit Guard","ASR: Alle Office-Anwendungen am Erstellen von untergeordneten Prozessen hindern (Richtlinie)"
 223,"Microsoft Defender Exploit Guard","ASR: Block Office applications from creating executable content",DE,"Microsoft Defender Exploit Guard","ASR: Office-Anwendungen am Erstellen ausführbarer Inhalte hindern"
@@ -639,8 +642,6 @@ Id,CategoryEN,NameEN,Language,Category,Name
 241,"Microsoft Defender Exploit Guard","ASR: Block untrusted and unsigned processes that run from USB",DE,"Microsoft Defender Exploit Guard","ASR: Nicht vertrauenswürdige und nicht signierte Prozess, die von USB ausgeführt werden, blockieren"
 240,"Microsoft Defender Exploit Guard","ASR: Block untrusted and unsigned processes that run from USB (Policy)",DE,"Microsoft Defender Exploit Guard","ASR: Nicht vertrauenswürdige und nicht signierte Prozess, die von USB ausgeführt werden, blockieren (Richtlinie)"
 1545,"Microsoft Defender Exploit Guard","ASR: Exclude files and paths from Attack Surface Reduction Rules (Policy)",,,
-227,"Microsoft Defender Exploit Guard","ASR: Impede JavaScript and VBScript to launch executables",DE,"Microsoft Defender Exploit Guard","ASR: JavaScript und VBScript am Starten heruntergeladener ausführbarer Inhalte hindern"
-226,"Microsoft Defender Exploit Guard","ASR: Impede JavaScript and VBScript to launch executables (Policy)",DE,"Microsoft Defender Exploit Guard","ASR: JavaScript und VBScript am Starten heruntergeladener ausführbarer Inhalte hindern (Richtlinie)"
 1546,"Microsoft Defender Exploit Guard","ASR: List of excluded files and paths from Attack Surface Reduction Rules",,,
 235,"Microsoft Defender Exploit Guard","ASR: Use advanced protection against ransomware",,,
 234,"Microsoft Defender Exploit Guard","ASR: Use advanced protection against ransomware (Policy)",,,
@@ -864,6 +865,8 @@ Id,CategoryEN,NameEN,Language,Category,Name
 1646,"Microsoft Edge","Allow unconfigured sites to be reloaded in Internet Explorer mode",,,
 809,"Microsoft Edge","Allow user-level native messaging hosts (installed without admin permissions)",,,
 803,"Microsoft Edge","Allow users to proceed from the HTTPS warning page",,,
+1662,"Microsoft Edge","Allow using the deprecated U2F Security Key API (deprecated)",,,
+1659,"Microsoft Edge","Configure Edge TyposquattingChecker",,,
 811,"Microsoft Edge","Configure Microsoft Defender SmartScreen",,,
 812,"Microsoft Edge","Configure Microsoft Defender SmartScreen to block potentially unwanted apps",,,
 696,"Microsoft Edge","Configure Password Manager",,,
@@ -874,8 +877,11 @@ Id,CategoryEN,NameEN,Language,Category,Name
 699,"Microsoft Edge","Configure the Adobe Flash Click-to-Run setting",,,
 807,"Microsoft Edge","Control which extensions cannot be installed",,,
 806,"Microsoft Edge","Default Adobe Flash setting (obsolete)",,,
+1654,"Microsoft Edge","Enable 3DES cipher suites in TLS",,,
+1655,"Microsoft Edge","Enable browser legacy extension point blocking",,,
 810,"Microsoft Edge","Enable saving passwords to the password manager",,,
 804,"Microsoft Edge","Enable site isolation for every site",,,
+1661,"Microsoft Edge","Enhance images enabled",,,
 805,"Microsoft Edge","Minimum TLS version enabled",,,
 700,"Microsoft Edge","Prevent access to the about:flags page in Microsoft Edge",,,
 701,"Microsoft Edge","Prevent bypassing Microsoft Defender SmartScreen prompts for files",,,
@@ -883,7 +889,9 @@ Id,CategoryEN,NameEN,Language,Category,Name
 814,"Microsoft Edge","Prevent bypassing of Microsoft Defender SmartScreen warnings about downloads",,,
 702,"Microsoft Edge","Prevent certificate error overrides",,,
 703,"Microsoft Edge","Prevent using Localhost IP address for WebRTC",,,
+1658,"Microsoft Edge","Show the Reload in Internet Explorer mode button in the toolbar",,,
 1648,"Microsoft Edge","Specifies whether SharedArrayBuffers can be used in a non cross-origin-isolated context",,,
+1656,"Microsoft Edge","Specifies whether the display-capture permissions-policy is checked or skipped",,,
 1647,"Microsoft Edge","Specifies whether to allow insecure websites to make requests to more-private network endpoints",,,
 808,"Microsoft Edge","Supported authentication schemes",,,
 1000,"Office 2016 / Office 365","Global Options: Disable UI extending from documents and templates (Access)",,,
@@ -1115,6 +1123,7 @@ Id,CategoryEN,NameEN,Language,Category,Name
 979,"Office 2016 / Office 365","Microsoft Excel: File Block Settings: dBase III / IV files",,,
 974,"Office 2016 / Office 365","Microsoft Excel: Force file extension to match file type",,,
 971,"Office 2016 / Office 365","Microsoft Excel: Load pictures from Web pages not created in Excel",,,
+1660,"Office 2016 / Office 365","Microsoft Excel: Prevent Excel from running XLM macros",,,
 1297,"Office 2016 / Office 365","Microsoft Excel: Require that application add-ins are signed by Trusted Publisher",,,
 975,"Office 2016 / Office 365","Microsoft Excel: Scan encrypted macros in Excel Open XML workbooks",,,
 997,"Office 2016 / Office 365","Microsoft Excel: Set document behavior if file validation fails (Allow edit in Protected View)",,,
@@ -1131,8 +1140,8 @@ Id,CategoryEN,NameEN,Language,Category,Name
 1037,"Office 2016 / Office 365","Microsoft Outlook: Allow scripts in one-off Outlook forms",,,
 1033,"Office 2016 / Office 365","Microsoft Outlook: Allow users to demote attachments to Level 2",,,
 1019,"Office 2016 / Office 365","Microsoft Outlook: Authentication with Exchange Server",,,
-1040,"Office 2016 / Office 365","Microsoft Outlook: Configure Outlook object model prompt When accessing the Formula property of a UserProperty object",,,
 1039,"Office 2016 / Office 365","Microsoft Outlook: Configure Outlook object model prompt when accessing an address book",,,
+1040,"Office 2016 / Office 365","Microsoft Outlook: Configure Outlook object model prompt when accessing the Formula property of a UserProperty object",,,
 1041,"Office 2016 / Office 365","Microsoft Outlook: Configure Outlook object model prompt when executing Save As",,,
 1042,"Office 2016 / Office 365","Microsoft Outlook: Configure Outlook object model prompt when reading address information",,,
 1043,"Office 2016 / Office 365","Microsoft Outlook: Configure Outlook object model prompt when responding to meeting and task requests",,,

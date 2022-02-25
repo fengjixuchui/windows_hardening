@@ -107,7 +107,11 @@
 
         # Skip machine information, useful when debugging
         [Switch]
-        $SkipMachineInformation = $false,        
+        $SkipMachineInformation = $false,
+
+        # Skip language warning, if you understand the risk 
+        [Switch]
+        $SkipLanguageWarning = $false,             
 
         # Define name and path of the log file
         [String]
@@ -491,7 +495,7 @@
     #
     # Start Main
     #
-    $HardeningKittyVersion = "0.6.1-1629523153"
+    $HardeningKittyVersion = "0.7.0-1645810640"
 
     #
     # Log, report and backup file
@@ -499,6 +503,8 @@
     $Hostname = $env:COMPUTERNAME.ToLower()
     $FileDate = Get-Date -Format yyyyMMdd-HHmmss
     $ListName = [System.IO.Path]::GetFileNameWithoutExtension($FileFindingList)
+    $WinSystemLocale = Get-WinSystemLocale
+    $PowerShellVersion = "$($PSVersionTable.PSVersion.Major).$($PSVersionTable.PSVersion.Minor)"
 
     If ($Log.IsPresent -and $LogFile.Length -eq 0) {
         $LogFile = "hardeningkitty_log_"+$Hostname+"_"+$ListName+"-$FileDate.log"
@@ -541,30 +547,94 @@
     # Machine information
     #
     If (-not($SkipMachineInformation)) {
+
         Write-Output "`n" 
         Write-ProtocolEntry -Text "Getting machine information" -LogLevel "Info"
-        $MachineInformation = Get-ComputerInfo
 
-        $Message = "Hostname: "+$MachineInformation.CsDNSHostName
-        Write-ProtocolEntry -Text $Message -LogLevel "Notime"
-        $Message = "Domain: "+$MachineInformation.CsDomain
-        Write-ProtocolEntry -Text $Message -LogLevel "Notime"
-        $Message = "Domain role: "+$MachineInformation.CsDomainRole
-        Write-ProtocolEntry -Text $Message -LogLevel "Notime"
-        $Message = "Install date: "+$MachineInformation.OsInstallDate
-        Write-ProtocolEntry -Text $Message -LogLevel "Notime"
-        $Message = "Last Boot Time: "+$MachineInformation.OsLastBootUpTime
-        Write-ProtocolEntry -Text $Message -LogLevel "Notime"
-        $Message = "Uptime: "+$MachineInformation.OsUptime
-        Write-ProtocolEntry -Text $Message -LogLevel "Notime"
-        $Message = "Windows: "+$MachineInformation.WindowsProductName
-        Write-ProtocolEntry -Text $Message -LogLevel "Notime"
-        $Message = "Windows edition: "+$MachineInformation.WindowsEditionId
-        Write-ProtocolEntry -Text $Message -LogLevel "Notime"
-        $Message = "Windows version: "+$MachineInformation.WindowsVersion
-        Write-ProtocolEntry -Text $Message -LogLevel "Notime"
-        $Message = "Windows build: "+$MachineInformation.WindowsBuildLabEx
-        Write-ProtocolEntry -Text $Message -LogLevel "Notime"
+        #
+        # The Get-ComputerInfo cmdlet gets a consolidated object of system
+        # and operating system properties. This cmdlet was introduced in Windows PowerShell 5.1.
+        #
+        If ($PowerShellVersion -le 5.0) {
+
+            try {
+
+                $OperatingSystem = Get-CimInstance Win32_operatingsystem
+                $ComputerSystem = Get-CimInstance Win32_ComputerSystem
+                Switch ($ComputerSystem.domainrole) {
+                    "0" { $Domainrole = "Standalone Workstation"; Break}
+                    "1" { $Domainrole = "Member Workstation"; Break}
+                    "2" { $Domainrole = "Standalone Server"; Break}
+                    "3" { $Domainrole = "Member Server"; Break}
+                    "4" { $Domainrole = "Backup Domain Controller"; Break}
+                    "5" { $Domainrole = "Primary Domain Controller"; Break}
+                }
+                $Uptime = (Get-Date) - $OperatingSystem.LastBootUpTime
+
+                $Message = "Hostname: "+$OperatingSystem.CSName
+                Write-ProtocolEntry -Text $Message -LogLevel "Notime"
+                $Message = "Domain: "+$ComputerSystem.Domain
+                Write-ProtocolEntry -Text $Message -LogLevel "Notime"
+                $Message = "Domain role: "+$Domainrole
+                Write-ProtocolEntry -Text $Message -LogLevel "Notime"
+                $Message = "Install date: "+$OperatingSystem.InstallDate
+                Write-ProtocolEntry -Text $Message -LogLevel "Notime"
+                $Message = "Last Boot Time: "+$OperatingSystem.LastBootUpTime
+                Write-ProtocolEntry -Text $Message -LogLevel "Notime"
+                $Message = "Uptime: "+$Uptime
+                Write-ProtocolEntry -Text $Message -LogLevel "Notime"
+                $Message = "Windows: "+$OperatingSystem.Caption
+                Write-ProtocolEntry -Text $Message -LogLevel "Notime"
+                $Message = "Windows version: "+$OperatingSystem.Version
+                Write-ProtocolEntry -Text $Message -LogLevel "Notime"
+                $Message = "Windows build: "+$OperatingSystem.BuildNumber
+                Write-ProtocolEntry -Text $Message -LogLevel "Notime"
+                $Message = "System-locale: "+$WinSystemLocale.Name
+                Write-ProtocolEntry -Text $Message -LogLevel "Notime"
+                $Message = "Powershell Version: "+$PowerShellVersion
+                Write-ProtocolEntry -Text $Message -LogLevel "Notime"
+            } catch {
+                Write-ProtocolEntry -Text "Getting machine information failed." -LogLevel "Warning"
+            }
+        }
+        Else {
+
+            $MachineInformation = Get-ComputerInfo
+            $Message = "Hostname: "+$MachineInformation.CsDNSHostName
+            Write-ProtocolEntry -Text $Message -LogLevel "Notime"
+            $Message = "Domain: "+$MachineInformation.CsDomain
+            Write-ProtocolEntry -Text $Message -LogLevel "Notime"
+            $Message = "Domain role: "+$MachineInformation.CsDomainRole
+            Write-ProtocolEntry -Text $Message -LogLevel "Notime"
+            $Message = "Install date: "+$MachineInformation.OsInstallDate
+            Write-ProtocolEntry -Text $Message -LogLevel "Notime"
+            $Message = "Last Boot Time: "+$MachineInformation.OsLastBootUpTime
+            Write-ProtocolEntry -Text $Message -LogLevel "Notime"
+            $Message = "Uptime: "+$MachineInformation.OsUptime
+            Write-ProtocolEntry -Text $Message -LogLevel "Notime"
+            $Message = "Windows: "+$MachineInformation.WindowsProductName
+            Write-ProtocolEntry -Text $Message -LogLevel "Notime"
+            $Message = "Windows edition: "+$MachineInformation.WindowsEditionId
+            Write-ProtocolEntry -Text $Message -LogLevel "Notime"
+            $Message = "Windows version: "+$MachineInformation.WindowsVersion
+            Write-ProtocolEntry -Text $Message -LogLevel "Notime"
+            $Message = "Windows build: "+$MachineInformation.WindowsBuildLabEx
+            Write-ProtocolEntry -Text $Message -LogLevel "Notime"
+            $Message = "System-locale: "+$WinSystemLocale.Name
+            Write-ProtocolEntry -Text $Message -LogLevel "Notime"
+            $Message = "Powershell Version: "+$PowerShellVersion
+            Write-ProtocolEntry -Text $Message -LogLevel "Notime"
+        }
+    }
+
+    #
+    # Warning for non-english systems
+    #
+    If ($WinSystemLocale.Name -ne "en-US" -and -not($SkipLanguageWarning)) {
+        Write-Output "`n"
+        Write-ProtocolEntry -Text "Language warning" -LogLevel "Info"
+        $Message = "HardeningKitty was developed for the system language 'en-US'. This system uses '"+$WinSystemLocale.Name+"' Language-dependent analyses can sometimes produce false results. Please create an issue if this occurs."
+        Write-ProtocolEntry -Text $Message -LogLevel "Warning"
     }
 
     #
@@ -589,8 +659,16 @@
         # A CSV finding list is imported. HardeningKitty has one machine and one user list.
         If ($FileFindingList.Length -eq 0) {
 
-            $CurrentLication = Get-Location
-            $FileFindingList = "$CurrentLication\lists\finding_list_0x6d69636b_machine.csv"
+            $CurrentLocation = Get-Location
+            $DefaultList = "$CurrentLocation\lists\finding_list_0x6d69636b_machine.csv"            
+
+            If (Test-Path -Path $DefaultList) {
+                $FileFindingList = $DefaultList
+            } Else {
+                $Message = "The finding list $DefaultList was not found."
+                Write-ProtocolEntry -Text $Message -LogLevel "Error"
+                Continue
+            }
         }
 
         $FindingList = Import-Csv -Path $FileFindingList -Delimiter ","
@@ -736,12 +814,30 @@
                 try {
 
                     $SubCategory = $Finding.MethodArgument
-                    $ResultOutput = &$BinaryAuditpol /get /subcategory:"$SubCategory"
-                    
-                    # "Parse" auditpol.exe output
-                    $ResultOutput[4] -match '  ([a-z, /-]+)  ([a-z, ]+)' | Out-Null
-                    $Result = $Matches[2]
 
+                    # auditpol.exe does not write a backup in an existing file, so we have to build a name instead of create one    
+                    $TempFileName = [System.IO.Path]::GetTempPath()+"HardeningKitty_auditpol-"+$(Get-Date -Format yyyyMMdd-HHmmss)+".csv"
+                    &$BinaryAuditpol /backup /file:$TempFileName > $null
+
+                    $ResultOutputLoad = Get-Content $TempFileName                    
+                    foreach ($line in $ResultOutputLoad){
+                        $table = $line.Split(",")
+                        if ($table[3] -eq $SubCategory){
+                            
+                            # Translate setting value (works only for English list, so this is workaround)
+                            Switch ($table[6]) {
+                              "0" { $Result = "No Auditing"; Break}
+                              "1" { $Result = "Success"; Break}
+                              "2" { $Result = "Failure"; Break}
+                              "3" { $Result = "Success and Failure"; Break}
+                            }
+                        }
+                    }
+
+                    # House cleaning
+                    Remove-Item $TempFileName
+                    Clear-Variable -Name ("ResultOutputLoad", "table")
+                    
                 } catch {
                     $Result = $Finding.DefaultValue
                 }
@@ -1317,8 +1413,16 @@
         # A CSV finding list is imported
         If ($FileFindingList.Length -eq 0) {
 
-            $CurrentLication = Get-Location
-            $FileFindingList = "$CurrentLication\lists\finding_list_0x6d69636b_machine.csv"
+            $CurrentLocation = Get-Location
+            $DefaultList = "$CurrentLocation\lists\finding_list_0x6d69636b_machine.csv"            
+
+            If (Test-Path -Path $DefaultList) {
+                $FileFindingList = $DefaultList
+            } Else {
+                $Message = "The finding list $DefaultList was not found."
+                Write-ProtocolEntry -Text $Message -LogLevel "Error"
+                Continue
+            }           
         }
 
         $FindingList = Import-Csv -Path $FileFindingList -Delimiter ","
@@ -1461,7 +1565,7 @@
 
                 $Result = Invoke-Expression $ResultCommand
 
-                if($LastExitCode -eq 1) {
+                if($LastExitCode -eq 0) {
                     $ResultText = "Method value modified"
                     $Message = "ID "+$Finding.ID+", "+$Finding.MethodArgument+", " + $ResultText
                     $MessageSeverity = "Passed"
@@ -1667,9 +1771,11 @@
 
                 #
                 # Basically this is true, but there is an exception for the finding "MitigationOptions_FontBocking",
-                # the value "10000000000" is written to the registry as a string
+                # the value "10000000000" is written to the registry as a string...
                 #
-                If ($Finding.RegistryItem -eq "MitigationOptions_FontBocking" -Or $Finding.RegistryItem -eq "Retention") {
+                # ... and more exceptions are added over time
+                #
+                If ($Finding.RegistryItem -eq "MitigationOptions_FontBocking" -Or $Finding.RegistryItem -eq "Retention" -Or $Finding.RegistryItem -eq "AllocateDASD" -Or $Finding.RegistryItem -eq "ScRemoveOption") {
                     $RegType = "String"
                 } ElseIf ($Finding.RecommendedValue -match "^\d+$") {
                     $RegType = "DWord"                    
