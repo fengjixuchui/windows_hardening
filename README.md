@@ -163,14 +163,22 @@ HardeningKitty can be used to audit systems against the following baselines / be
 | CIS Microsoft Windows 10 Enterprise (User) | 2004 | 1.9.1 |
 | CIS Microsoft Windows 10 Enterprise (Machine) | 20H2 | 1.10.1 |
 | CIS Microsoft Windows 10 Enterprise (User) | 20H2 | 1.10.1 |
+| CIS Microsoft Windows 10 Enterprise (Machine) | 21H1 | 1.11.0 |
+| CIS Microsoft Windows 10 Enterprise (User) | 21H1 | 1.11.0 |
+| CIS Microsoft Windows 11 Enterprise (Machine) | 21H2 | 1.0.0 |
+| CIS Microsoft Windows 11 Enterprise (User) | 21H2 | 1.0.0 |
 | CIS Microsoft Windows Server 2012 R2 (Machine) | R2 | 2.4.0 |
 | CIS Microsoft Windows Server 2012 R2 (User) | R2 | 2.4.0 |
 | CIS Microsoft Windows Server 2016 (Machine) | 1607 | 1.2.0 |
 | CIS Microsoft Windows Server 2016 (User) | 1607 | 1.2.0 |
+| CIS Microsoft Windows Server 2016 (Machine) | 1607 | 1.3.0 |
+| CIS Microsoft Windows Server 2016 (User) | 1607 | 1.3.0 |
 | CIS Microsoft Windows Server 2019 (Machine) | 1809 | 1.1.0 |
 | CIS Microsoft Windows Server 2019 (User) | 1809 | 1.1.0 |
-| CIS Microsoft Windows Server 2019 (Machine) | 1809 | 1.2.0 |
-| CIS Microsoft Windows Server 2019 (User) | 1809 | 1.2.0 |
+| CIS Microsoft Windows Server 2019 (Machine) | 1809 | 1.2.1 |
+| CIS Microsoft Windows Server 2019 (User) | 1809 | 1.2.1 |
+| CIS Microsoft Windows Server 2022 (Machine) | 21H2 | 1.0.0 |
+| CIS Microsoft Windows Server 2022 (User) | 21H2 | 1.0.0 |
 | DoD Microsoft Windows 10 STIG (Machine) | 20H2 | v2r1 |
 | DoD Microsoft Windows 10 STIG (User) | 20H2 | v2r1 |
 | DoD Windows Server 2019 Domain Controller STIG (Machine) | 20H2 | v2r1 |
@@ -208,9 +216,7 @@ HardeningKitty can be used to audit systems against the following baselines / be
 
 ## Sources
 
-* [CIS Benchmarks for Microsoft Windows 10 Enterprise Release 1909 v1.8.1](https://www.cisecurity.org/cis-benchmarks/)
-* [CIS Benchmarks for Microsoft Windows 10 Enterprise Release 2004 v1.9.1](https://www.cisecurity.org/cis-benchmarks/)
-* [CIS Benchmarks for Microsoft Windows Server 2019 RTM Release 1809 v1.1.0](https://www.cisecurity.org/cis-benchmarks/)
+* [CIS Benchmarks](https://www.cisecurity.org/cis-benchmarks/)
 * [Security baseline (FINAL): Windows 10 and Windows Server, version 2004](https://techcommunity.microsoft.com/t5/microsoft-security-baselines/security-baseline-final-windows-10-and-windows-server-version/ba-p/1543631)
 * [Security baseline (FINAL) for Windows 10 and Windows Server, version 20H2](https://techcommunity.microsoft.com/t5/microsoft-security-baselines/security-baseline-final-for-windows-10-and-windows-server/ba-p/1999393)
 * [Security baseline (FINAL) for Windows 10, version 21H1](https://techcommunity.microsoft.com/t5/microsoft-security-baselines/security-baseline-final-for-windows-10-version-21h1/ba-p/2362353)
@@ -252,7 +258,6 @@ HardeningKitty can be used to audit systems against the following baselines / be
 * [Setup Microsoft Windows or IIS for SSL Perfect Forward Secrecy and TLS 1.2](https://www.hass.de/content/setup-microsoft-windows-or-iis-ssl-perfect-forward-secrecy-and-tls-12)
 * [Nartac Software - IIS Crypto](https://www.nartac.com/Products/IISCrypto/)
 * [Transport Layer Security (TLS) best practices with the .NET Framework](https://docs.microsoft.com/en-us/dotnet/framework/network-programming/tls)
-* [Microsoft TLS 1.3 Support Reference](https://devblogs.microsoft.com/premier-developer/microsoft-tls-1-3-support-reference/)
 * [TLS Cipher Suites in Windows Server 2022](https://docs.microsoft.com/en-us/windows/win32/secauthn/tls-cipher-suites-in-windows-server-2022)
 * [Windows Defender Antivirus can now run in a sandbox](https://www.microsoft.com/security/blog/2018/10/26/windows-defender-antivirus-can-now-run-in-a-sandbox/)
 * [KB5005010: Restricting installation of new printer drivers after applying the July 6, 2021 updates](https://support.microsoft.com/en-us/topic/kb5005010-restricting-installation-of-new-printer-drivers-after-applying-the-july-6-2021-updates-31b91c02-05bc-4ada-a7ea-183b129578a7)
