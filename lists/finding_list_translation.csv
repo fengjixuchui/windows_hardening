@@ -25,7 +25,7 @@ Id,CategoryEN,NameEN,Language,Category,Name
 801,"Administrative Templates: Control Panel","Force specific screen saver: Screen saver executable name",DE,"Administrative Vorlagen: Systemsteuerung","Bestimmten Bildschirmschoner erzwingen"
 736,"Administrative Templates: Control Panel","Password protect the screen saver",DE,"Administrative Vorlagen: Systemsteuerung","Kennwortschutz für den Bildschirmschoner verwenden"
 98,"Administrative Templates: Control Panel","Personalization: Prevent enabling lock screen camera",DE,"Administrative Vorlagen: Systemsteuerung","Anpassung: Aktivieren der Sperrbildschirmkamera verhindern"
-528,"Administrative Templates: Control Panel","Personalization: Prevent enabling lock screen slide",DE,"Administrative Vorlagen: Systemsteuerung","Anpassung: Aktivieren der Diashow auf dem Sperrbildschirm verhindern"
+528,"Administrative Templates: Control Panel","Personalization: Prevent enabling lock screen slide show",DE,"Administrative Vorlagen: Systemsteuerung","Anpassung: Aktivieren der Diashow auf dem Sperrbildschirm verhindern"
 529,"Administrative Templates: Control Panel","Regional and Language Options: Allow users to enable online speech recognition services",DE,"Administrative Vorlagen: Systemsteuerung","Regions- und Sprachoptionen: Aktivierung von Online-Spracherkennungsdiensten durch den Benutzer zulassen"
 1551,"Administrative Templates: Control Panel","Regional and Language Options: Handwriting personalization: Turn off automatic learning (RestrictImplicitInkCollection)",DE,"Administrative Vorlagen: Systemsteuerung","Regions- und Sprachanpassung: Handschriftanpassung: Automatisches Lernen deaktivieren (RestrictImplicitInkCollection)"
 1552,"Administrative Templates: Control Panel","Regional and Language Options: Handwriting personalization: Turn off automatic learning (RestrictImplicitTextCollection)",DE,"Administrative Vorlagen: Systemsteuerung","Regions- und Sprachanpassung: Handschriftanpassung: Automatisches Lernen deaktivieren (RestrictImplicitTextCollection)"
@@ -113,6 +113,7 @@ Id,CategoryEN,NameEN,Language,Category,Name
 585,"Administrative Templates: System","Device Installation: Device Installation Restrictions: Prevent installation of devices using drivers that match c06ff265-ae09-48f0-812c-16753d7cba83 (SBP-2 drive)",DE,"Administrative Vorlagen: System","Geräteinstallation: Einschränkungen bei der Geräteinstallation: Installation von Geräten mit Treibern verhindern, die diesen Gerätesetupklassen entsprechen c06ff265-ae09-48f0-812c-16753d7cba83 (SBP-2 drive)"
 111,"Administrative Templates: System","Device Installation: Device Installation Restrictions: Prevent installation of devices using drivers that match d48179be-ec20-11d1-b6b8-00c04fa372a7 (SBP-2 drive)",DE,"Administrative Vorlagen: System","Geräteinstallation: Einschränkungen bei der Geräteinstallation: Installation von Geräten mit Treibern verhindern, die diesen Gerätesetupklassen entsprechen d48179be-ec20-11d1-b6b8-00c04fa372a7 (SBP-2 drive)"
 122,"Administrative Templates: System","Early Launch Antimalware: Boot-Start Driver Initialization Policy",DE,"Administrative Vorlagen: System","Antischadsoftware-Frühstart: Richtlinie für Bootstarttreiber-Initialisierung"
+1688,"Administrative Templates: System","Group Policy: Configure security policy processing: Process even if the Group Policy objects have not changed",,,
 587,"Administrative Templates: System","Group Policy: Continue experiences on this device",DE,"Administrative Vorlagen: System","Gruppenrichtlinie: Auf der Oberfläche dieses Geräts weiterverarbeiten"
 124,"Administrative Templates: System","Group Policy: Do not apply during periodic background processing",DE,"Administrative Vorlagen: System","Gruppenrichtlinie: Während regelmäßiger Hintergrundverarbeitung nicht übernehmen"
 123,"Administrative Templates: System","Group Policy: Process even if the Group Policy objects have not changed",DE,"Administrative Vorlagen: System","Gruppenrichtlinie: Gruppenrichtlinienobjekte auch ohne Änderungen verarbeiten"
@@ -175,7 +176,7 @@ Id,CategoryEN,NameEN,Language,Category,Name
 1548,"Administrative Templates: System","Trusted Platform Module Services: Ignore the default list of blocked TPM commands",DE,"Administrative Vorlagen: System","Trusted Platform Module-Dienste: Standardliste der blockierten TPM-Befehle ignorieren"
 1549,"Administrative Templates: System","Trusted Platform Module Services: Standard User Lockout Duration",DE,"Administrative Vorlagen: System","Trusted Platform Module-Dienste: Standardbenutzer-Sperrdauer"
 1550,"Administrative Templates: System","Trusted Platform Module Services: Standard User Total Lockout Threshold",DE,"Administrative Vorlagen: System","Trusted Platform Module-Dienste: Standardbenutzer-Sperrschwelle (gesamt)"
-147,"Administrative Templates: System","User Profiles: Turn of the advertising ID",DE,"Administrative Vorlagen: System","Benutzerprofile: Werbe-ID deaktivieren"
+147,"Administrative Templates: System","User Profiles: Turn off the advertising ID",DE,"Administrative Vorlagen: System","Benutzerprofile: Werbe-ID deaktivieren"
 146,"Administrative Templates: System","Windows Performance PerfTrack: Enable/Disable PerfTrack",DE,"Administrative Vorlagen: System","Windows-Leistungsnachverfolgungsmodul: PerfTrack aktivieren/deaktivieren"
 150,"Administrative Templates: Windows Components","App Package Deployment: Allow a Windows app to share application data between users",DE,"Administrative Vorlagen: Windows-Komponenten","Bereitstellung von App-Paketen: Windows-Apps die Freigabe von Anwendungsdaten zwischen Benutzern erlauben"
 610,"Administrative Templates: Windows Components","App Package Deployment: Prevent non-admin users from installing packaged Windows apps",,,
@@ -291,13 +292,13 @@ Id,CategoryEN,NameEN,Language,Category,Name
 1634,"Administrative Templates: Windows Components","EMET: System DEP",,,
 1635,"Administrative Templates: Windows Components","EMET: System SEHOP",,,
 664,"Administrative Templates: Windows Components","Event Log Service: Application: Control Event Log behavior when the log file reaches its maximum size",,,
+178,"Administrative Templates: Windows Components","Event Log Service: Application: Specify the maximum log file size (KB)",,,
 665,"Administrative Templates: Windows Components","Event Log Service: Security: Control Event Log behavior when the log file reaches its maximum size",,,
+179,"Administrative Templates: Windows Components","Event Log Service: Security: Specify the maximum log file size (KB)",,,
 666,"Administrative Templates: Windows Components","Event Log Service: Setup: Control Event Log behavior when the log file reaches its maximum size",,,
 668,"Administrative Templates: Windows Components","Event Log Service: Setup: Specify the maximum log file size (KB)",,,
-178,"Administrative Templates: Windows Components","Event Log Service: Specify the maximum Application log file size (KB)",,,
-179,"Administrative Templates: Windows Components","Event Log Service: Specify the maximum Security log file size (KB)",,,
-180,"Administrative Templates: Windows Components","Event Log Service: Specify the maximum System log file size (KB)",,,
 667,"Administrative Templates: Windows Components","Event Log Service: System: Control Event Log behavior when the log file reaches its maximum size",,,
+180,"Administrative Templates: Windows Components","Event Log Service: System: Specify the maximum log file size (KB)",,,
 181,"Administrative Templates: Windows Components","File Explorer: Allow the use of remote paths in file shortcut icons",,,
 263,"Administrative Templates: Windows Components","File Explorer: Configure Windows Defender SmartScreen",DE,"Administrative Vorlagen: Windows-Komponenten","Explorer: Windows Defender SmartScreen konfigurieren"
 264,"Administrative Templates: Windows Components","File Explorer: Configure Windows Defender SmartScreen to warn and prevent bypass",DE,"Administrative Vorlagen: Windows-Komponenten","Explorer: Umgehen der Windows Defender SmartScreen-Aufforderungen für Websites verhindern"
@@ -620,7 +621,7 @@ Id,CategoryEN,NameEN,Language,Category,Name
 1531,"Microsoft Defender Antivirus","Threats: Specify threat alert levels at which default action should not be taken when detected: Low (1)",,,
 1532,"Microsoft Defender Antivirus","Threats: Specify threat alert levels at which default action should not be taken when detected: Medium (2)",,,
 1534,"Microsoft Defender Antivirus","Threats: Specify threat alert levels at which default action should not be taken when detected: Severe (5)",,,
-211,"Microsoft Defender Antivirus","Turn off Windows Defender Antivirus",DE,"Microsoft Defender Antivirus","Windows Defender Antivirus deaktivieren"
+211,"Microsoft Defender Antivirus","Turn off Microsoft Defender Antivirus",DE,"Microsoft Defender Antivirus","Windows Defender Antivirus deaktivieren"
 685,"Microsoft Defender Application Guard","Allow auditing events in Microsoft Defender Application Guard",,,
 686,"Microsoft Defender Application Guard","Allow camera and microphone access in Microsoft Defender Application Guard",,,
 687,"Microsoft Defender Application Guard","Allow data persistence for Microsoft Defender Application Guard",,,
@@ -633,24 +634,24 @@ Id,CategoryEN,NameEN,Language,Category,Name
 244,"Microsoft Defender Exploit Guard","ASR: Block Adobe Reader from creating child processes (Policy)",DE,"Microsoft Defender Exploit Guard","ASR: Adobe Reader am Erstellen von untergeordneten Prozessen hindern (Richtlinie)"
 227,"Microsoft Defender Exploit Guard","ASR: Block JavaScript or VBScript from launching downloaded executable content",DE,"Microsoft Defender Exploit Guard","ASR: JavaScript und VBScript am Starten heruntergeladener ausführbarer Inhalte hindern"
 226,"Microsoft Defender Exploit Guard","ASR: Block JavaScript or VBScript from launching downloaded executable content (Policy)",DE,"Microsoft Defender Exploit Guard","ASR: JavaScript und VBScript am Starten heruntergeladener ausführbarer Inhalte hindern (Richtlinie)"
-221,"Microsoft Defender Exploit Guard","ASR: Block Office applications from creating child processes",DE,"Microsoft Defender Exploit Guard","ASR: Alle Office-Anwendungen am Erstellen von untergeordneten Prozessen hindern"
-220,"Microsoft Defender Exploit Guard","ASR: Block Office applications from creating child processes (Policy)",DE,"Microsoft Defender Exploit Guard","ASR: Alle Office-Anwendungen am Erstellen von untergeordneten Prozessen hindern (Richtlinie)"
 223,"Microsoft Defender Exploit Guard","ASR: Block Office applications from creating executable content",DE,"Microsoft Defender Exploit Guard","ASR: Office-Anwendungen am Erstellen ausführbarer Inhalte hindern"
 222,"Microsoft Defender Exploit Guard","ASR: Block Office applications from creating executable content (Policy)",DE,"Microsoft Defender Exploit Guard","ASR: Office-Anwendungen am Erstellen ausführbarer Inhalte hindern (Richtlinie)"
-225,"Microsoft Defender Exploit Guard","ASR: Block Office applications from injecting into other processes",DE,"Microsoft Defender Exploit Guard","ASR: Office-Anwendungen am Einfügen von Code in untergeordnete Prozesse hindern"
-224,"Microsoft Defender Exploit Guard","ASR: Block Office applications from injecting into other processes (Policy)",DE,"Microsoft Defender Exploit Guard","ASR: Office-Anwendungen am Einfügen von Code in untergeordnete Prozesse hindern (Richtlinie)"
-243,"Microsoft Defender Exploit Guard","ASR: Block Office communication applications from creating child processes",DE,"Microsoft Defender Exploit Guard","ASR: Office-Kommunikationsanwendung am Erstellen von untergeordneten Prozessen hindern"
-242,"Microsoft Defender Exploit Guard","ASR: Block Office communication applications from creating child processes (Policy)",DE,"Microsoft Defender Exploit Guard","ASR: Office-Kommunikationsanwendung am Erstellen von untergeordneten Prozessen hindern (Richtlinie)"
-231,"Microsoft Defender Exploit Guard","ASR: Block Win32 imports from Macro code in Office",DE,"Microsoft Defender Exploit Guard","ASR: Win32-API-Aufrufe von Office-Makros blockieren"
-230,"Microsoft Defender Exploit Guard","ASR: Block Win32 imports from Macro code in Office (Policy)",DE,"Microsoft Defender Exploit Guard","ASR: Win32-API-Aufrufe von Office-Makros blockieren (Richtlinie)"
+225,"Microsoft Defender Exploit Guard","ASR: Block Office applications from injecting code into other processes",DE,"Microsoft Defender Exploit Guard","ASR: Office-Anwendungen am Einfügen von Code in untergeordnete Prozesse hindern"
+224,"Microsoft Defender Exploit Guard","ASR: Block Office applications from injecting code into other processes (Policy)",DE,"Microsoft Defender Exploit Guard","ASR: Office-Anwendungen am Einfügen von Code in untergeordnete Prozesse hindern (Richtlinie)"
+243,"Microsoft Defender Exploit Guard","ASR: Block Office communication application from creating child processes",DE,"Microsoft Defender Exploit Guard","ASR: Office-Kommunikationsanwendung am Erstellen von untergeordneten Prozessen hindern"
+242,"Microsoft Defender Exploit Guard","ASR: Block Office communication application from creating child processes (Policy)",DE,"Microsoft Defender Exploit Guard","ASR: Office-Kommunikationsanwendung am Erstellen von untergeordneten Prozessen hindern (Richtlinie)"
+231,"Microsoft Defender Exploit Guard","ASR: Block Win32 API calls from Office macros",DE,"Microsoft Defender Exploit Guard","ASR: Win32-API-Aufrufe von Office-Makros blockieren"
+230,"Microsoft Defender Exploit Guard","ASR: Block Win32 API calls from Office macros (Policy)",DE,"Microsoft Defender Exploit Guard","ASR: Win32-API-Aufrufe von Office-Makros blockieren (Richtlinie)"
 1641,"Microsoft Defender Exploit Guard","ASR: Block abuse of exploited vulnerable signed drivers",,,
 1640,"Microsoft Defender Exploit Guard","ASR: Block abuse of exploited vulnerable signed drivers (Policy)",,,
+221,"Microsoft Defender Exploit Guard","ASR: Block all Office applications from creating child processes",DE,"Microsoft Defender Exploit Guard","ASR: Alle Office-Anwendungen am Erstellen von untergeordneten Prozessen hindern"
+220,"Microsoft Defender Exploit Guard","ASR: Block all Office applications from creating child processes (Policy)",DE,"Microsoft Defender Exploit Guard","ASR: Alle Office-Anwendungen am Erstellen von untergeordneten Prozessen hindern (Richtlinie)"
 237,"Microsoft Defender Exploit Guard","ASR: Block credential stealing from the Windows local security authority subsystem (lsass.exe)",DE,"Microsoft Defender Exploit Guard","ASR: Diebstahl von Anmeldeinformationen aus dem Subsystem für die lokale Sicherheitsautorität (lsass.exe) blockieren"
 236,"Microsoft Defender Exploit Guard","ASR: Block credential stealing from the Windows local security authority subsystem (lsass.exe) (Policy)",DE,"Microsoft Defender Exploit Guard","ASR: Diebstahl von Anmeldeinformationen aus dem Subsystem für die lokale Sicherheitsautorität (lsass.exe) blockieren (Richtlinie)"
 219,"Microsoft Defender Exploit Guard","ASR: Block executable content from email client and webmail",DE,"Microsoft Defender Exploit Guard","ASR: Ausführbare Inhalte aus E-Mail-Client und Web-E-Mail blockieren"
 218,"Microsoft Defender Exploit Guard","ASR: Block executable content from email client and webmail (Policy)",DE,"Microsoft Defender Exploit Guard","ASR: Ausführbare Inhalte aus E-Mail-Client und Web-E-Mail blockieren (Richtlinie)"
-233,"Microsoft Defender Exploit Guard","ASR: Block executable files from running unless they meet a prevalence, age, or trusted list criteria",,,
-232,"Microsoft Defender Exploit Guard","ASR: Block executable files from running unless they meet a prevalence, age, or trusted list criteria (Policy)",,,
+233,"Microsoft Defender Exploit Guard","ASR: Block executable files from running unless they meet a prevalence, age, or trusted list criterion",,,
+232,"Microsoft Defender Exploit Guard","ASR: Block executable files from running unless they meet a prevalence, age, or trusted list criterion (Policy)",,,
 229,"Microsoft Defender Exploit Guard","ASR: Block execution of potentially obfuscated scripts",DE,"Microsoft Defender Exploit Guard","ASR: Ausführung potenziell verborgener Skripts blockieren"
 228,"Microsoft Defender Exploit Guard","ASR: Block execution of potentially obfuscated scripts (Policy)",DE,"Microsoft Defender Exploit Guard","ASR: Ausführung potenziell verborgener Skripts blockieren (Richtlinie)"
 247,"Microsoft Defender Exploit Guard","ASR: Block persistence through WMI event subscription",,,

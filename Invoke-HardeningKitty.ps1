@@ -495,16 +495,21 @@
     #
     # Start Main
     #
-    $HardeningKittyVersion = "0.7.0-1645810640"
+    $HardeningKittyVersion = "0.7.0-1647797768"
 
     #
     # Log, report and backup file
     #
     $Hostname = $env:COMPUTERNAME.ToLower()
     $FileDate = Get-Date -Format yyyyMMdd-HHmmss
-    $ListName = [System.IO.Path]::GetFileNameWithoutExtension($FileFindingList)
     $WinSystemLocale = Get-WinSystemLocale
     $PowerShellVersion = "$($PSVersionTable.PSVersion.Major).$($PSVersionTable.PSVersion.Minor)"
+
+    If ($FileFindingList.Length -eq 0) {
+        $ListName = "finding_list_0x6d69636b_machine"
+    } Else {
+        $ListName = [System.IO.Path]::GetFileNameWithoutExtension($FileFindingList)
+    }
 
     If ($Log.IsPresent -and $LogFile.Length -eq 0) {
         $LogFile = "hardeningkitty_log_"+$Hostname+"_"+$ListName+"-$FileDate.log"
@@ -1272,9 +1277,10 @@
                 #
                 If ($Finding.Method -eq 'accesschk') {
 
+                    $SaveRecommendedValue = $Finding.RecommendedValue
+
                     If ($Result -ne '') {
 
-                        $SaveRecommendedValue = $Finding.RecommendedValue
                         $ListRecommended = $Finding.RecommendedValue.Split(";")
                         $ListRecommendedSid = @()
 
@@ -1296,6 +1302,14 @@
                         Clear-Variable -Name ("RecommendedValueSid")
                     }
                 }
+
+                # 
+                # Exception handling for special registry keys
+                # Machine => Network access: Remotely accessible registry paths
+                #
+                If ($Finding.Method -eq 'Registry' -and $Finding.RegistryItem -eq "Machine"){
+                    $Finding.RecommendedValue = $Finding.RecommendedValue.Replace(";"," ")
+                }                
  
                 $ResultPassed = $false
                 Switch($Finding.Operator) {
@@ -1577,6 +1591,45 @@
 
                 Write-ResultEntry -Text $Message -SeverityLevel $MessageSeverity
             }
+            
+            #
+            # Microsoft Defender Preferences - Attack surface reduction rules (ASR rules)
+            # The values are saved from a PowerShell function into an object.
+            # The desired arguments can be accessed directly.
+            #
+            If ($Finding.Method -eq 'MpPreferenceAsr') {
+
+                # Check if the user has admin rights, skip test if not
+                If (-not($IsAdmin)) {
+                    $StatsError++
+                    $Message = "ID "+$Finding.ID+", "+$Finding.Name+", Method "+$Finding.Method+" requires admin priviliges. Test skipped."
+                    Write-ProtocolEntry -Text $Message -LogLevel "Error"
+                    Continue
+                }
+
+                $ResultMethodArgument = $Finding.MethodArgument
+                $ResultRecommendedValue = $Finding.RecommendedValue
+                
+                Switch($ResultRecommendedValue) {
+                    "True" { $ResultRecommendedValue = 1; Break }
+                    "False" { $ResultRecommendedValue = 0; Break }
+                }
+
+                $ResultCommand = "Add-MpPreference -AttackSurfaceReductionRules_Ids $ResultMethodArgument -AttackSurfaceReductionRules_Actions $ResultRecommendedValue"
+                $Result = Invoke-Expression $ResultCommand
+
+                if($LastExitCode -eq 0) {
+                    $ResultText = "ASR rule added to list"
+                    $Message = "ID "+$Finding.ID+", "+$Finding.Name+", "+$Finding.MethodArgument+", " + $ResultText
+                    $MessageSeverity = "Passed"
+                } else {
+                    $ResultText = "Failed to add ASR rule"
+                    $Message = "ID "+$Finding.ID+", "+$Finding.Name+", "+$Finding.MethodArgument+", " + $ResultText
+                    $MessageSeverity = "High"
+                }
+
+                Write-ResultEntry -Text $Message -SeverityLevel $MessageSeverity
+            }
 
             #
             # secedit
@@ -1773,11 +1826,22 @@
                 # Basically this is true, but there is an exception for the finding "MitigationOptions_FontBocking",
                 # the value "10000000000" is written to the registry as a string...
                 #
-                # ... and more exceptions are added over time
+                # ... and more exceptions are added over time:
                 #
-                If ($Finding.RegistryItem -eq "MitigationOptions_FontBocking" -Or $Finding.RegistryItem -eq "Retention" -Or $Finding.RegistryItem -eq "AllocateDASD" -Or $Finding.RegistryItem -eq "ScRemoveOption") {
+                # MitigationOptions_FontBocking => Mitigation Options: Untrusted Font Blocking
+                # Machine => Network access: Remotely accessible registry paths
+                # Retention => Event Log Service: *: Control Event Log behavior when the log file reaches its maximum size
+                # AllocateDASD => Devices: Allowed to format and eject removable media
+                # ScRemoveOption => Interactive logon: Smart card removal behavior
+                # AutoAdminLogon => MSS: (AutoAdminLogon) Enable Automatic Logon (not recommended)
+                #
+                If ($Finding.RegistryItem -eq "MitigationOptions_FontBocking" -Or $Finding.RegistryItem -eq "Retention" -Or $Finding.RegistryItem -eq "AllocateDASD" -Or $Finding.RegistryItem -eq "ScRemoveOption" -Or $Finding.RegistryItem -eq "AutoAdminLogon") {
                     $RegType = "String"
-                } ElseIf ($Finding.RecommendedValue -match "^\d+$") {
+                } ElseIf ($Finding.RegistryItem -eq "Machine") {
+                    $RegType = "MultiString"
+                    $Finding.RecommendedValue = $Finding.RecommendedValue -split ";"
+                }
+                 ElseIf ($Finding.RecommendedValue -match "^\d+$") {
                     $RegType = "DWord"                    
                 }
 
@@ -1921,11 +1985,11 @@
                     Continue
                 }
 
-                # Feature will be installed
+                # Feature will be removed, a reboot will be suppressed
                 If ($Result -eq "Enabled" -and $Finding.RecommendedValue -eq "Disabled") {
 
                     try {
-                        $Result = Disable-WindowsOptionalFeature -Online -FeatureName $Finding.MethodArgument                             
+                        $Result = Disable-WindowsOptionalFeature -NoRestart -Online -FeatureName $Finding.MethodArgument                             
                     } catch {
                         $ResultText = "Could not be removed"
                         $Message = "ID "+$Finding.ID+", "+$Finding.Name+", " + $ResultText
@@ -1944,11 +2008,11 @@
                     $Message = "ID "+$Finding.ID+", "+$Finding.Name+", " + $ResultText
                     $MessageSeverity = "Passed"
                 }
-                # Feature will be installed
+                # Feature will be installed, a reboot will be suppressed
                 ElseIf ($Result -eq "Disabled" -and $Finding.RecommendedValue -eq "Enabled") {
 
                     try {
-                        $Result = Enable-WindowsOptionalFeature -Online -FeatureName $Finding.MethodArgument                             
+                        $Result = Enable-WindowsOptionalFeature -NoRestart -Online -FeatureName $Finding.MethodArgument                             
                     } catch {
                         $ResultText = "Could not be installed"
                         $Message = "ID "+$Finding.ID+", "+$Finding.Name+", " + $ResultText
