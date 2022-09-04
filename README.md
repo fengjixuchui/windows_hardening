@@ -8,13 +8,7 @@ This is a hardening checklist that can be used in private and business environme
 
 The settings should be seen as security and privacy recommendation and should be carefully checked whether they will affect the operation of your infrastructure or impact the usability of key functions. It is important to weigh security against usability.
 
-The project started with the creation of a simple hardening checklist for Windows 10. The focus has shifted to the audit of various well-known frameworks / benchmarks with the development of _HardeningKitty_. Meanwhile, various CIS benchmarks and Microsoft Security Baselines are supported. With the development of the _HailMary_ mode, it will also be possible to apply settings of any Hardening Checklist on a Windows system.
-
-## Policy Analyzer (deprecated)
-
-_Policy Analzyer_ reads out and compares local registry and local policy values to a defined baseline. The PolicyRule file from [aha-181](https://github.com/aha-181) contains all rules which are needed to check Group Policy and Registry settings that are defined in the Windows 10 Hardening checklist.
-
-Policy Analyzer supports the hardening checklist up to version 0.2.0, additional entries are not yet supported. Policy Analyzer is not able to query all values of the hardening checklist. With the development of _HardeningKitty_, the support of Policy Analyzer has become obsolete. There will no longer be a new version of the PolicyRule file.
+The project started with the creation of a simple hardening checklist for Windows 10. The focus has shifted to the audit of various well-known frameworks / benchmarks with the development of _HardeningKitty_. Meanwhile, various CIS benchmarks and Microsoft Security Baselines are supported. With the development of the _HailMary_ mode, it will also be possible to apply settings of any hardening checklist on a Windows system.
 
 ## HardeningKitty
 
@@ -22,61 +16,75 @@ _HardeningKitty_ supports hardening of a Windows system. The configuration of th
 
 The script was developed for English systems. It is possible that in other languages the analysis is incorrect. Please create an issue if this occurs.
 
-### Signed version
+### Signed Version
 
 The development of _HardeningKitty_ happens in this repository. In the [repository of scip AG](https://github.com/scipag/HardeningKitty) is a stable version of _HardeningKitty_ that has been *signed* with the code signing certificate of _scip AG_. This means that _HardeningKitty_ can also be run on systems that only allow signed scripts.
 
-### How to run
+### How To Run
 
 Run the script with administrative privileges to access machine settings. For the user settings it is better to execute them with a normal user account. Ideally, the user account is used for daily work.
 
 Download _HardeningKitty_ and copy it to the target system (script and lists). Then HardeningKitty can be imported and executed:
 
 ```powershell
-PS C:\tmp> Import-Module .\Invoke-HardeningKitty.ps1
+PS C:\tmp> Import-Module .\HardeningKitty.psm1
 PS C:\tmp> Invoke-HardeningKitty -EmojiSupport
 
 
          =^._.^=
-        _(      )/  HardeningKitty 0.6.1-1628003775
+        _(      )/  HardeningKitty 0.9.0-1662273740
 
 
-[*] 8/7/2021 7:27:04 AM - Starting HardeningKitty
+[*] 9/4/2022 8:54:12 AM - Starting HardeningKitty
 
 
-[*] 8/7/2021 7:27:04 AM - Getting machine information
+[*] 9/4/2022 8:54:12 AM - Getting user information
 [*] Hostname: DESKTOP-DG83TOD
 [*] Domain: WORKGROUP
 
 ...
 
-[*] 8/7/2021 7:27:09 AM - Starting Category Account Policies
+[*] [*] 9/4/2022 8:54:12 AM - Starting Category Account Policies
 [😺] ID 1103, Store passwords using reversible encryption, Result=0, Severity=Passed
 [😺] ID 1100, Account lockout threshold, Result=10, Severity=Passed
 [😺] ID 1101, Account lockout duration, Result=30, Severity=Passed
 
 ...
 
-[*] 8/7/2021 7:27:09 AM - Starting Category User Rights Assignment
+[*] 9/4/2022 8:54:12 AM - Starting Category User Rights Assignment
 [😿] ID 1200, Access this computer from the network, Result=BUILTIN\Administrators;BUILTIN\Users, Recommended=BUILTIN\Administrators, Severity=Medium
 
 ...
 
-[*] 8/7/2021 7:27:12 AM - Starting Category Administrative Templates: Printer
+[*] 9/4/2022 8:54:14 AM - Starting Category Administrative Templates: Printer
 [🙀] ID 1764, Point and Print Restrictions: When installing drivers for a new connection (CVE-2021-34527), Result=1, Recommended=0, Severity=High
 [🙀] ID 1765, Point and Print Restrictions: When updating drivers for an existing connection (CVE-2021-34527), Result=2, Recommended=0, Severity=High
 
 ...
 
-[*] 8/7/2021 7:27:19 AM - Starting Category MS Security Guide
+[*] 9/4/2022 8:54:19 AM - Starting Category MS Security Guide
 [😿] ID 2200, LSA Protection, Result=, Recommended=1, Severity=Medium
 [😼] ID 2201, Lsass.exe audit mode, Result=, Recommended=8, Severity=Low
 
 ...
 
-[*] 8/7/2021 7:27:48 AM - HardeningKitty is done
-[*] 8/7/2021 7:27:48 AM - Your HardeningKitty score is: 4.82. HardeningKitty Statistics: Total checks: 325 - Passed: 213, Low: 33, Medium: 76, High: 3.
+[*] 9/4/2022 8:54:25 AM - HardeningKitty is done
+[*] 9/4/2022 8:54:25 AM - Your HardeningKitty score is: 4.82. HardeningKitty Statistics: Total checks: 325 - Passed: 213, Low: 33, Medium: 76, High: 3.
 ```
+
+### How To Install
+
+First create the directory *HardeningKitty* and for every version a sub directory like *0.9.0* in a path listed in the *PSModulePath* environment variable.
+
+Copy the module *HardeningKitty.psm1*, *HardeningKitty.psd1*, and the *lists* directory to this new directory.
+
+```powershell
+PS C:\tmp> $Version = "0.9.0"
+PS C:\tmp> New-Item -Path $Env:ProgramFiles\WindowsPowerShell\Modules\HardeningKitty\$Version -ItemType Directory
+PS C:\tmp> Copy-Item -Path .\HardeningKitty.psd1,.\HardeningKitty.psm1,.\lists\ -Destination $Env:ProgramFiles\WindowsPowerShell\Modules\HardeningKitty\$Version\ -Recurse 
+```
+
+For more information see Microsoft's article [Installing a PowerShell Module](https://docs.microsoft.com/en-us/powershell/scripting/developer/module/installing-a-powershell-module).
 
 ### Examples
 
@@ -196,7 +204,7 @@ HardeningKitty can be used to audit systems against the following baselines / be
 | Microsoft Security baseline for Microsoft Edge | 95 | Final |
 | Microsoft Security baseline for Microsoft Edge | 96 | Final |
 | Microsoft Security baseline for Microsoft Edge | 97 | Final |
-| Microsoft Security baseline for Microsoft Edge | 98, 99, 100, 101, 102, 103, 104 | Final |
+| Microsoft Security baseline for Microsoft Edge | 98, 99, 100, 101, 102, 103, 104, 105 | Final |
 | Microsoft Security baseline for Windows 10 | 2004 | Final |
 | Microsoft Security baseline for Windows 10 | 20H2, 21H1 | Final |
 | Microsoft Security baseline for Windows 10 | 21H2 | Final |
@@ -260,6 +268,7 @@ HardeningKitty can be used to audit systems against the following baselines / be
 * [Security baseline for Microsoft Edge v102](https://techcommunity.microsoft.com/t5/microsoft-security-baselines/security-baseline-for-microsoft-edge-v102/ba-p/3465195)
 * [Security baseline for Microsoft Edge v103](https://techcommunity.microsoft.com/t5/microsoft-security-baselines/security-baseline-for-microsoft-edge-v103/ba-p/3548236)
 * [Security baseline for Microsoft Edge v104](https://techcommunity.microsoft.com/t5/microsoft-security-baselines/security-baseline-for-microsoft-edge-v104/ba-p/3593826)
+* [Security baseline for Microsoft Edge v105](https://techcommunity.microsoft.com/t5/microsoft-security-baselines/security-baseline-for-microsoft-edge-v105/ba-p/3615904)
 * [Microsoft Edge - Policies](https://docs.microsoft.com/en-us/DeployEdge/microsoft-edge-policies)
 * [A hint for Office 365 Telemetry](https://twitter.com/milenkowski/status/1326865844215934979)
 * [BSI: Microsoft Office Telemetry Analysis report](https://www.bsi.bund.de/SharedDocs/Downloads/DE/BSI/Publikationen/Studien/Office_Telemetrie/Office_Telemetrie.pdf?__blob=publicationFile&v=5)
