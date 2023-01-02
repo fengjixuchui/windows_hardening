@@ -71,6 +71,11 @@
         Information about the system is not queried and displayed. This may be useful while debugging or
         using multiple lists on the same system.
 
+    .PARAMETER SkipUserInformation
+
+        Information about the user is not queried and displayed. This may be useful while debugging or
+        using multiple lists on the same system.
+
     .PARAMETER SkipLanguageWarning
 
         Do not show the language warning on an no-english Windows system.
@@ -80,6 +85,11 @@
         Do not create a System Restore Point in HailMary mode. HardeningKitty strongly recommends to backup your system before running Hail Mary. However,
         creating can be skipped, for example, if HailMary is executed several times in a row. By default, Windows allows a restore point every 24 hours.
         Another reason is when HardeningKitty is run as a user and thus lacks privileges.
+
+    .PARAMETER Filter
+
+        The Filter parameter can be used to filter the hardening list. For this purpose the PowerShell ScriptBlock syntax must be used, for example { $_.ID -eq 4505 }.
+        The following elements are useful for filtering: ID, Category, Name, Method, and Severity.
 
     .EXAMPLE
         Invoke-HardeningKitty -Mode Audit -Log -Report
@@ -92,10 +102,14 @@
         HardeningKitty performs an audit with a specific list and does not show machine information
 
     .EXAMPLE
-        Invoke-HardeningKitty -Mode Config -Report -Report C:\tmp\my_hardeningkitty_report.csv
+        Invoke-HardeningKitty -Mode Config -Report -ReportFile C:\tmp\my_hardeningkitty_report.csv
 
-        HardeningKitty ready only the setting with the default list, and saves the results in a specific file
+        HardeningKitty uses the default list, and saves the results in a specific file
 
+    .EXAMPLE
+        Invoke-HardeningKitty -Filter { $_.Severity -eq "Medium" }
+
+        HardeningKitty uses the default list, and checks only tests with the severity Medium
     #>
 
     [CmdletBinding()]
@@ -121,6 +135,10 @@
         # Skip machine information, useful when debugging
         [Switch]
         $SkipMachineInformation,
+
+        # Skip user information, useful when debugging
+        [Switch]
+        $SkipUserInformation,
 
         # Skip language warning, if you understand the risk
         [Switch]
@@ -148,7 +166,11 @@
 
         # Define name and path of the backup file
         [String]
-        $BackupFile
+        $BackupFile,
+
+        # Use PowerShell ScriptBlock syntax to filter the finding list
+        [scriptblock]
+        $Filter
     )
 
     Function Write-ProtocolEntry {
@@ -555,7 +577,7 @@
     #
     # Start Main
     #
-    $HardeningKittyVersion = "0.9.0-1662280196"
+    $HardeningKittyVersion = "0.9.1-1672382539"
 
     #
     # Log, report and backup file
@@ -577,17 +599,11 @@
     If ($Report -and $ReportFile.Length -eq 0) {
         $ReportFile = "hardeningkitty_report_" + $Hostname + "_" + $ListName + "-$FileDate.csv"
     }
-    If ($Report) {
-        $Message = '"ID","Name","Severity","Result","Recommended","TestResult","SeverityFinding"'
-        Add-MessageToFile -Text $Message -File $ReportFile
-    }
     If ($Backup -and $BackupFile.Length -eq 0) {
         $BackupFile = "hardeningkitty_backup_" + $Hostname + "_" + $ListName + "-$FileDate.csv"
     }
-    If ($Backup) {
-        $Message = '"ID","Category","Name","Method","MethodArgument","RegistryPath","RegistryItem","ClassName","Namespace","Property","DefaultValue","RecommendedValue","Operator","Severity"'
-        Add-MessageToFile -Text $Message -File $BackupFile
-    }
+    $ReportAllResults = @()
+    $BackupAllResults = @()
 
     #
     # Statistics
@@ -676,7 +692,7 @@
             Write-ProtocolEntry -Text $Message -LogLevel "Notime"
             $Message = "Uptime: " + $MachineInformation.OsUptime
             Write-ProtocolEntry -Text $Message -LogLevel "Notime"
-            $Message = "Windows: " + $MachineInformation.WindowsProductName
+            $Message = "Windows: " + $MachineInformation.OsName
             Write-ProtocolEntry -Text $Message -LogLevel "Notime"
             $Message = "Windows edition: " + $MachineInformation.WindowsEditionId
             Write-ProtocolEntry -Text $Message -LogLevel "Notime"
@@ -704,14 +720,18 @@
     #
     # User information
     #
-    Write-Output "`n"
-    Write-ProtocolEntry -Text "Getting user information" -LogLevel "Info"
+    If (-not($SkipUserInformation)) {
+        Write-Output "`n"
+        Write-ProtocolEntry -Text "Getting user information" -LogLevel "Info"
 
-    $Message = "Username: " + [Security.Principal.WindowsIdentity]::GetCurrent().Name
-    Write-ProtocolEntry -Text $Message -LogLevel "Notime"
-    $IsAdmin = ([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole] "Administrator")
-    $Message = "Is Admin: " + $IsAdmin
-    Write-ProtocolEntry -Text $Message -LogLevel "Notime"
+        $Message = "Username: " + [Security.Principal.WindowsIdentity]::GetCurrent().Name
+        Write-ProtocolEntry -Text $Message -LogLevel "Notime"
+        $IsAdmin = ([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole] "Administrator")
+        $Message = "Is Admin: " + $IsAdmin
+        Write-ProtocolEntry -Text $Message -LogLevel "Notime"
+    } Else {
+        $IsAdmin = ([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole] "Administrator")
+    }
 
     #
     # Start Config/Audit mode
@@ -736,6 +756,14 @@
         }
 
         $FindingList = Import-Csv -Path $FileFindingList -Delimiter ","
+        If ($Filter) {
+            $FindingList = $FindingList | Where-Object -FilterScript $Filter
+            If ($FindingList.Length -eq 0) {
+                $Message = "Your filter did not return any results, please adjust the filter so that HardeningKitty has something to work with."
+                Write-ProtocolEntry -Text $Message -LogLevel "Error"
+                Break
+            }
+        }
         $LastCategory = ""
 
         ForEach ($Finding in $FindingList) {
@@ -1073,7 +1101,7 @@
 
                 try {
 
-                    $ResultOutput = Get-BitLockerVolume -MountPoint C:
+                    $ResultOutput = Get-BitLockerVolume -MountPoint $Env:SystemDrive
                     If ($ResultOutput.VolumeType -eq 'OperatingSystem') {
                         $ResultArgument = $Finding.MethodArgument
                         $Result = $ResultOutput.$ResultArgument
@@ -1291,6 +1319,22 @@
             }
 
             #
+            # Scheduled Task
+            # Check the status of a scheduled task
+            #
+            ElseIf ($Finding.Method -eq 'ScheduledTask') {
+
+                try {
+
+                    $ResultOutput = Get-ScheduledTask -TaskName $Finding.MethodArgument 2> $null
+                    $Result = $ResultOutput.State
+
+                } catch {
+                    $Result = $Finding.DefaultValue
+                }
+            }
+
+            #
             # Compare result value and recommendation
             # The finding list specifies the test, as well as the recommended values.
             # There are two output formats, one for command line output and one for the CSV file.
@@ -1344,6 +1388,27 @@
                     $Finding.RecommendedValue = $Finding.RecommendedValue.Replace(" ", "")
                 }
 
+                #
+                # Handling for registry keys with an "advanced" format
+                #
+                If ($Finding.Method -eq 'Registry' -and $Finding.RegistryItem -eq "ASRRules") {
+
+                    try {
+                        $ResultAsr = $Result.Split("|")
+                        ForEach ($AsrRow in $ResultAsr) {
+                            $AsrRule = $AsrRow.Split("=")
+                            If ($AsrRule[0] -eq $Finding.MethodArgument) {
+                                $Result = $AsrRule[1]
+                                Break
+                            } Else {
+                            $Result = $Finding.DefaultValue
+                            }
+                        }
+                    } catch {
+                        $Result = $Finding.DefaultValue
+                    }
+                }
+
                 $ResultPassed = $false
                 Switch ($Finding.Operator) {
 
@@ -1389,8 +1454,17 @@
                     }
 
                     If ($Report) {
-                        $Message = '"' + $Finding.ID + '","' + $Finding.Name + '","Passed","' + $Result + '","' + $Finding.RecommendedValue + '","' + $TestResult + '","' + $Finding.Severity + '"'
-                        Add-MessageToFile -Text $Message -File $ReportFile
+                        $ReportResult = [ordered] @{
+                            ID = $Finding.ID
+                            Category = $Finding.Category
+                            Name = $Finding.Name
+                            Severity = "Passed"
+                            Result = $Result
+                            Recommended = $Finding.RecommendedValue
+                            TestResult = $TestResult
+                            SeverityFinding = $Finding.Severity
+                        }
+                        $ReportAllResults += $ReportResult
                     }
 
                     # Increment Counter
@@ -1413,8 +1487,17 @@
                     }
 
                     If ($Report) {
-                        $Message = '"' + $Finding.ID + '","' + $Finding.Name + '","' + $Finding.Severity + '","' + $Result + '","' + $Finding.RecommendedValue + '","' + $TestResult + '","' + $Finding.Severity + '"'
-                        Add-MessageToFile -Text $Message -File $ReportFile
+                        $ReportResult = [ordered] @{
+                            ID = $Finding.ID
+                            Category = $Finding.Category
+                            Name = $Finding.Name
+                            Severity = $Finding.Severity
+                            Result = $Result
+                            Recommended = $Finding.RecommendedValue
+                            TestResult = $TestResult
+                            SeverityFinding = $Finding.Severity
+                        }
+                        $ReportAllResults += $ReportResult
                     }
 
                     # Increment Counter
@@ -1438,12 +1521,36 @@
                     Add-MessageToFile -Text $Message -File $LogFile
                 }
                 If ($Report) {
-                    $Message = '"' + $Finding.ID + '","' + $Finding.Name + '",,"' + $Result + '",' + $Finding.RecommendedValue + ',,'
-                    Add-MessageToFile -Text $Message -File $ReportFile
+                    $ReportResult = [ordered] @{
+                        ID = $Finding.ID
+                        Category = $Finding.Category
+                        Name = $Finding.Name
+                        Severity = ""
+                        Result = $Result
+                        Recommended = $Finding.RecommendedValue
+                        TestResult = ""
+                        SeverityFinding = ""
+                    }
+                    $ReportAllResults += $ReportResult
                 }
                 If ($Backup) {
-                    $Message = '"' + $Finding.ID + '","' + $Finding.Category + '","' + $Finding.Name + '","' + $Finding.Method + '","' + $Finding.MethodArgument + '","' + $Finding.RegistryPath + '","' + $Finding.RegistryItem + '","' + $Finding.ClassName + '","' + $Finding.Namespace + '","' + $Finding.Property + '","' + $Finding.DefaultValue + '","' + $Result + '","' + $Finding.Operator + '","' + $Finding.Severity + '",'
-                    Add-MessageToFile -Text $Message -File $BackupFile
+                    $BackupResult = [ordered] @{
+                        ID = $Finding.ID
+                        Category = $Finding.Category
+                        Name = $Finding.Name
+                        Method = $Finding.Method
+                        MethodArgument = $Finding.MethodArgument
+                        RegistryPath = $Finding.RegistryPath
+                        RegistryItem = $Finding.RegistryItem
+                        ClassName =$Finding.ClassName
+                        Namespace = $Finding.Namespace
+                        Property = $Finding.Property
+                        DefaultValue = $Finding.DefaultValue
+                        RecommendedValue = $Result
+                        Operator = $Finding.Operator
+                        Severity = $Finding.Severity
+                    }
+                    $BackupAllResults += $BackupResult
                 }
             }
         }
@@ -1537,6 +1644,36 @@
                     Continue
                 }
 
+                #
+                # Do not set/configure certain registry
+                # ASR rules configured with Intune (ASRRules, ASROnlyExclusions)
+                # Defender expections configured with Intune (ExcludedExtensions, ExcludedPaths, ExcludedProcesses)
+                #
+                If ($Finding.RegistryItem -eq "ASRRules" -Or $Finding.RegistryItem -eq "ASROnlyExclusions" -Or $Finding.RegistryItem -eq "ExcludedExtensions" -Or $Finding.RegistryItem -eq "ExcludedPaths" -Or $Finding.RegistryItem -eq "ExcludedProcesses") {
+                    $ResultText = "This setting is not configured by HardeningKitty"
+                    $Message = "ID " + $Finding.ID + ", " + $Finding.RegistryPath + ", " + $Finding.RegistryItem + ", " + $ResultText
+                    $MessageSeverity = "Passed"
+                    $TestResult = "Passed"
+                    Write-ResultEntry -Text $Message -SeverityLevel $MessageSeverity
+                    If ($Log) {
+                        Add-MessageToFile -Text $Message -File $LogFile
+                    }
+                    If ($Report) {
+                        $ReportResult = [ordered] @{
+                            ID = $Finding.ID
+                            Category = $Finding.Category
+                            Name = $Finding.Name
+                            Severity = $MessageSeverity
+                            Result = $ResultText
+                            Recommended = ""
+                            TestResult = $TestResult
+                            SeverityFinding = ""
+                        }
+                        $ReportAllResults += $ReportResult
+                    }
+                    Continue
+                }
+
                 $RegType = "String"
 
                 #
@@ -1561,13 +1698,13 @@
                     $RegType = "DWord"
                 }
 
-                if (!(Test-Path $Finding.RegistryPath)) {
+                If (!(Test-Path $Finding.RegistryPath)) {
 
                     $Result = New-Item $Finding.RegistryPath -Force;
 
                     If ($Result) {
                         $ResultText = "Registry key created"
-                        $Message = "ID " + $Finding.ID + ", " + $Finding.RegistryPath + ", " + $ResultText
+                        $Message = "ID " + $Finding.ID + ", " + $Finding.RegistryPath + ", " + $Finding.RegistryItem + ", " + $ResultText
                         $MessageSeverity = "Passed"
                         $TestResult = "Passed"
                         Write-ResultEntry -Text $Message -SeverityLevel $MessageSeverity
@@ -1575,13 +1712,21 @@
                             Add-MessageToFile -Text $Message -File $LogFile
                         }
                         If ($Report) {
-                            $Message = '"' + $Finding.ID + '","' + $Finding.Name + '","' + $MessageSeverity + '","' + $ResultText + '",,"' + $TestResult + '",'
-                            Add-MessageToFile -Text $Message -File $ReportFile
+                            $ReportResult = [ordered] @{
+                                ID = $Finding.ID
+                                Category = $Finding.Category
+                                Name = $Finding.Name
+                                Severity = $MessageSeverity
+                                Result = $ResultText
+                                Recommended = ""
+                                TestResult = $TestResult
+                                SeverityFinding = ""
+                            }
+                            $ReportAllResults += $ReportResult
                         }
-
                     } Else {
                         $ResultText = "Failed to create registry key"
-                        $Message = "ID " + $Finding.ID + ", " + $Finding.RegistryPath + ", " + $ResultText
+                        $Message = "ID " + $Finding.ID + ", " + $Finding.RegistryPath + ", " + $Finding.RegistryItem + ", " + $ResultText
                         $MessageSeverity = "High"
                         $TestResult = "Failed"
                         Write-ResultEntry -Text $Message -SeverityLevel $MessageSeverity
@@ -1589,8 +1734,17 @@
                             Add-MessageToFile -Text $Message -File $LogFile
                         }
                         If ($Report) {
-                            $Message = '"' + $Finding.ID + '","' + $Finding.Name + '","' + $MessageSeverity + '","' + $ResultText + '",,"' + $TestResult + '",'
-                            Add-MessageToFile -Text $Message -File $ReportFile
+                            $ReportResult = [ordered] @{
+                                ID = $Finding.ID
+                                Category = $Finding.Category
+                                Name = $Finding.Name
+                                Severity = $MessageSeverity
+                                Result = $ResultText
+                                Recommended = ""
+                                TestResult = $TestResult
+                                SeverityFinding = ""
+                            }
+                            $ReportAllResults += $ReportResult
                         }
                         Continue
                     }
@@ -1643,8 +1797,17 @@
                     Add-MessageToFile -Text $Message -File $LogFile
                 }
                 If ($Report) {
-                    $Message = '"' + $Finding.ID + '","' + $Finding.Name + '","' + $MessageSeverity + '","' + $ResultText + '",,"' + $TestResult + '",'
-                    Add-MessageToFile -Text $Message -File $ReportFile
+                    $ReportResult = [ordered] @{
+                        ID = $Finding.ID
+                        Category = $Finding.Category
+                        Name = $Finding.Name
+                        Severity = $MessageSeverity
+                        Result = $ResultText
+                        Recommended = ""
+                        TestResult = $TestResult
+                        SeverityFinding = ""
+                    }
+                    $ReportAllResults += $ReportResult
                 }
             }
 
@@ -1696,8 +1859,17 @@
                         Add-MessageToFile -Text $Message -File $LogFile
                     }
                     If ($Report) {
-                        $Message = '"' + $Finding.ID + '","' + $Finding.Name + '","' + $MessageSeverity + '","' + $ResultText + '",,"' + $TestResult + '",'
-                        Add-MessageToFile -Text $Message -File $ReportFile
+                        $ReportResult = [ordered] @{
+                            ID = $Finding.ID
+                            Category = $Finding.Category
+                            Name = $Finding.Name
+                            Severity = $MessageSeverity
+                            Result = $ResultText
+                            Recommended = ""
+                            TestResult = $TestResult
+                            SeverityFinding = ""
+                        }
+                        $ReportAllResults += $ReportResult
                     }
                     Remove-Item $TempFileName
                     Remove-Item $TempDbFileName
@@ -1714,8 +1886,17 @@
                     Add-MessageToFile -Text $Message -File $LogFile
                 }
                 If ($Report) {
-                    $Message = '"' + $Finding.ID + '","' + $Finding.Name + '","' + $MessageSeverity + '","' + $ResultText + '",,"' + $TestResult + '",'
-                    Add-MessageToFile -Text $Message -File $ReportFile
+                    $ReportResult = [ordered] @{
+                        ID = $Finding.ID
+                        Category = $Finding.Category
+                        Name = $Finding.Name
+                        Severity = $MessageSeverity
+                        Result = $ResultText
+                        Recommended = ""
+                        TestResult = $TestResult
+                        SeverityFinding = ""
+                    }
+                    $ReportAllResults += $ReportResult
                 }
 
                 &$BinarySecedit /configure /db $TempDbFileName /overwrite /areas SECURITYPOLICY /quiet | Out-Null
@@ -1730,8 +1911,17 @@
                         Add-MessageToFile -Text $Message -File $LogFile
                     }
                     If ($Report) {
-                        $Message = '"' + $Finding.ID + '","' + $Finding.Name + '","' + $MessageSeverity + '","' + $ResultText + '",,"' + $TestResult + '",'
-                        Add-MessageToFile -Text $Message -File $ReportFile
+                        $ReportResult = [ordered] @{
+                            ID = $Finding.ID
+                            Category = $Finding.Category
+                            Name = $Finding.Name
+                            Severity = $MessageSeverity
+                            Result = $ResultText
+                            Recommended = ""
+                            TestResult = $TestResult
+                            SeverityFinding = ""
+                        }
+                        $ReportAllResults += $ReportResult
                     }
                     Remove-Item $TempFileName
                     Remove-Item $TempDbFileName
@@ -1748,8 +1938,17 @@
                     Add-MessageToFile -Text $Message -File $LogFile
                 }
                 If ($Report) {
-                    $Message = '"' + $Finding.ID + '","' + $Finding.Name + '","' + $MessageSeverity + '","' + $ResultText + '",,"' + $TestResult + '",'
-                    Add-MessageToFile -Text $Message -File $ReportFile
+                    $ReportResult = [ordered] @{
+                        ID = $Finding.ID
+                        Category = $Finding.Category
+                        Name = $Finding.Name
+                        Severity = $MessageSeverity
+                        Result = $ResultText
+                        Recommended = ""
+                        TestResult = $TestResult
+                        SeverityFinding = ""
+                    }
+                    $ReportAllResults += $ReportResult
                 }
 
                 Remove-Item $TempFileName
@@ -1798,8 +1997,17 @@
                     Add-MessageToFile -Text $Message -File $LogFile
                 }
                 If ($Report) {
-                    $Message = '"' + $Finding.ID + '","' + $Finding.Name + '","' + $MessageSeverity + '","' + $ResultText + '",,"' + $TestResult + '",'
-                    Add-MessageToFile -Text $Message -File $ReportFile
+                    $ReportResult = [ordered] @{
+                        ID = $Finding.ID
+                        Category = $Finding.Category
+                        Name = $Finding.Name
+                        Severity = $MessageSeverity
+                        Result = $ResultText
+                        Recommended = ""
+                        TestResult = $TestResult
+                        SeverityFinding = ""
+                    }
+                    $ReportAllResults += $ReportResult
                 }
             }
 
@@ -1853,8 +2061,17 @@
                     Add-MessageToFile -Text $Message -File $LogFile
                 }
                 If ($Report) {
-                    $Message = '"' + $Finding.ID + '","' + $Finding.Name + '","' + $MessageSeverity + '","' + $ResultText + '",,"' + $TestResult + '",'
-                    Add-MessageToFile -Text $Message -File $ReportFile
+                    $ReportResult = [ordered] @{
+                        ID = $Finding.ID
+                        Category = $Finding.Category
+                        Name = $Finding.Name
+                        Severity = $MessageSeverity
+                        Result = $ResultText
+                        Recommended = ""
+                        TestResult = $TestResult
+                        SeverityFinding = ""
+                    }
+                    $ReportAllResults += $ReportResult
                 }
             }
 
@@ -1931,8 +2148,17 @@
                     Add-MessageToFile -Text $Message -File $LogFile
                 }
                 If ($Report) {
-                    $Message = '"' + $Finding.ID + '","' + $Finding.Name + '","' + $MessageSeverity + '","' + $ResultText + '",,"' + $TestResult + '",'
-                    Add-MessageToFile -Text $Message -File $ReportFile
+                    $ReportResult = [ordered] @{
+                        ID = $Finding.ID
+                        Category = $Finding.Category
+                        Name = $Finding.Name
+                        Severity = $MessageSeverity
+                        Result = $ResultText
+                        Recommended = ""
+                        TestResult = $TestResult
+                        SeverityFinding = ""
+                    }
+                    $ReportAllResults += $ReportResult
                 }
 
                 &$BinarySecedit /configure /db $TempDbFileName /overwrite /areas USER_RIGHTS /quiet | Out-Null
@@ -1947,8 +2173,17 @@
                         Add-MessageToFile -Text $Message -File $LogFile
                     }
                     If ($Report) {
-                        $Message = '"' + $Finding.ID + '","' + $Finding.Name + '","' + $MessageSeverity + '","' + $ResultText + '",,"' + $TestResult + '",'
-                        Add-MessageToFile -Text $Message -File $ReportFile
+                       $ReportResult = [ordered] @{
+                            ID = $Finding.ID
+                            Category = $Finding.Category
+                            Name = $Finding.Name
+                            Severity = $MessageSeverity
+                            Result = $ResultText
+                            Recommended = ""
+                            TestResult = $TestResult
+                            SeverityFinding = ""
+                        }
+                        $ReportAllResults += $ReportResult
                     }
                     Remove-Item $TempFileName
                     Remove-Item $TempDbFileName
@@ -1965,8 +2200,17 @@
                     Add-MessageToFile -Text $Message -File $LogFile
                 }
                 If ($Report) {
-                    $Message = '"' + $Finding.ID + '","' + $Finding.Name + '","' + $MessageSeverity + '","' + $ResultText + '",,"' + $TestResult + '",'
-                    Add-MessageToFile -Text $Message -File $ReportFile
+                    $ReportResult = [ordered] @{
+                        ID = $Finding.ID
+                        Category = $Finding.Category
+                        Name = $Finding.Name
+                        Severity = $MessageSeverity
+                        Result = $ResultText
+                        Recommended = ""
+                        TestResult = $TestResult
+                        SeverityFinding = ""
+                    }
+                    $ReportAllResults += $ReportResult
                 }
 
                 Remove-Item $TempFileName
@@ -2002,8 +2246,17 @@
                         Add-MessageToFile -Text $Message -File $LogFile
                     }
                     If ($Report) {
-                        $Message = '"' + $Finding.ID + '","' + $Finding.Name + '","' + $MessageSeverity + '","' + $ResultText + '",,"' + $TestResult + '",'
-                        Add-MessageToFile -Text $Message -File $ReportFile
+                        $ReportResult = [ordered] @{
+                            ID = $Finding.ID
+                            Category = $Finding.Category
+                            Name = $Finding.Name
+                            Severity = $MessageSeverity
+                            Result = $ResultText
+                            Recommended = ""
+                            TestResult = $TestResult
+                            SeverityFinding = ""
+                        }
+                        $ReportAllResults += $ReportResult
                     }
                     Continue
                 }
@@ -2023,8 +2276,17 @@
                             Add-MessageToFile -Text $Message -File $LogFile
                         }
                         If ($Report) {
-                            $Message = '"' + $Finding.ID + '","' + $Finding.Name + '","' + $MessageSeverity + '","' + $ResultText + '",,"' + $TestResult + '",'
-                            Add-MessageToFile -Text $Message -File $ReportFile
+                            $ReportResult = [ordered] @{
+                                ID = $Finding.ID
+                                Category = $Finding.Category
+                                Name = $Finding.Name
+                                Severity = $MessageSeverity
+                                Result = $ResultText
+                                Recommended = ""
+                                TestResult = $TestResult
+                                SeverityFinding = ""
+                            }
+                            $ReportAllResults += $ReportResult
                         }
                         Continue
                     }
@@ -2054,8 +2316,17 @@
                             Add-MessageToFile -Text $Message -File $LogFile
                         }
                         If ($Report) {
-                            $Message = '"' + $Finding.ID + '","' + $Finding.Name + '","' + $MessageSeverity + '","' + $ResultText + '",,"' + $TestResult + '",'
-                            Add-MessageToFile -Text $Message -File $ReportFile
+                            $ReportResult = [ordered] @{
+                                ID = $Finding.ID
+                                Category = $Finding.Category
+                                Name = $Finding.Name
+                                Severity = $MessageSeverity
+                                Result = $ResultText
+                                Recommended = ""
+                                TestResult = $TestResult
+                                SeverityFinding = ""
+                            }
+                            $ReportAllResults += $ReportResult
                         }
                         Continue
                     }
@@ -2078,8 +2349,17 @@
                     Add-MessageToFile -Text $Message -File $LogFile
                 }
                 If ($Report) {
-                    $Message = '"' + $Finding.ID + '","' + $Finding.Name + '","' + $MessageSeverity + '","' + $ResultText + '",,"' + $TestResult + '",'
-                    Add-MessageToFile -Text $Message -File $ReportFile
+                    $ReportResult = [ordered] @{
+                        ID = $Finding.ID
+                        Category = $Finding.Category
+                        Name = $Finding.Name
+                        Severity = $MessageSeverity
+                        Result = $ResultText
+                        Recommended = ""
+                        TestResult = $TestResult
+                        SeverityFinding = ""
+                    }
+                    $ReportAllResults += $ReportResult
                 }
             }
 
@@ -2127,8 +2407,17 @@
                     Add-MessageToFile -Text $Message -File $LogFile
                 }
                 If ($Report) {
-                    $Message = '"' + $Finding.ID + '","' + $Finding.Name + '","' + $MessageSeverity + '","' + $ResultText + '",,"' + $TestResult + '",'
-                    Add-MessageToFile -Text $Message -File $ReportFile
+                    $ReportResult = [ordered] @{
+                        ID = $Finding.ID
+                        Category = $Finding.Category
+                        Name = $Finding.Name
+                        Severity = $MessageSeverity
+                        Result = $ResultText
+                        Recommended = ""
+                        TestResult = $TestResult
+                        SeverityFinding = ""
+                    }
+                    $ReportAllResults += $ReportResult
                 }
             }
 
@@ -2178,8 +2467,17 @@
                     Add-MessageToFile -Text $Message -File $LogFile
                 }
                 If ($Report) {
-                    $Message = '"' + $Finding.ID + '","' + $Finding.Name + '","' + $MessageSeverity + '","' + $ResultText + '",,"' + $TestResult + '",'
-                    Add-MessageToFile -Text $Message -File $ReportFile
+                    $ReportResult = [ordered] @{
+                        ID = $Finding.ID
+                        Category = $Finding.Category
+                        Name = $Finding.Name
+                        Severity = $MessageSeverity
+                        Result = $ResultText
+                        Recommended = ""
+                        TestResult = $TestResult
+                        SeverityFinding = ""
+                    }
+                    $ReportAllResults += $ReportResult
                 }
             }
 
@@ -2227,8 +2525,17 @@
                     Add-MessageToFile -Text $Message -File $LogFile
                 }
                 If ($Report) {
-                    $Message = '"' + $Finding.ID + '","' + $Finding.Name + '","' + $MessageSeverity + '","' + $ResultText + '",,"' + $TestResult + '",'
-                    Add-MessageToFile -Text $Message -File $ReportFile
+                    $ReportResult = [ordered] @{
+                        ID = $Finding.ID
+                        Category = $Finding.Category
+                        Name = $Finding.Name
+                        Severity = $MessageSeverity
+                        Result = $ResultText
+                        Recommended = ""
+                        TestResult = $TestResult
+                        SeverityFinding = ""
+                    }
+                    $ReportAllResults += $ReportResult
                 }
             }
 
@@ -2296,8 +2603,17 @@
                     Add-MessageToFile -Text $Message -File $LogFile
                 }
                 If ($Report) {
-                    $Message = '"' + $Finding.ID + '","' + $Finding.Name + '","' + $MessageSeverity + '","' + $ResultText + '",,"' + $TestResult + '",'
-                    Add-MessageToFile -Text $Message -File $ReportFile
+                    $ReportResult = [ordered] @{
+                        ID = $Finding.ID
+                        Category = $Finding.Category
+                        Name = $Finding.Name
+                        Severity = $MessageSeverity
+                        Result = $ResultText
+                        Recommended = ""
+                        TestResult = $TestResult
+                        SeverityFinding = ""
+                    }
+                    $ReportAllResults += $ReportResult
                 }
             }
 
@@ -2338,7 +2654,6 @@
                 If (-Not $Result) {
 
                     If ($FwProgram -eq "") {
-
                         $ResultRule = New-NetFirewallRule -DisplayName $FwDisplayName -Profile $FwProfile -Direction $FwDirection -Action $FwAction -Protocol $FwProtocol -LocalPort $FwLocalPort
                     } Else {
                         $ResultRule = New-NetFirewallRule -DisplayName $FwDisplayName -Profile $FwProfile -Direction $FwDirection -Action $FwAction -Program "$FwProgram"
@@ -2373,8 +2688,90 @@
                 }
 
                 If ($Report) {
-                    $Message = '"' + $Finding.ID + '","' + $Finding.Name + '","' + $MessageSeverity + '","' + $ResultText + '",,"' + $TestResult + '",'
-                    Add-MessageToFile -Text $Message -File $ReportFile
+                    $ReportResult = [ordered] @{
+                        ID = $Finding.ID
+                        Category = $Finding.Category
+                        Name = $Finding.Name
+                        Severity = $MessageSeverity
+                        Result = $ResultText
+                        Recommended = ""
+                        TestResult = $TestResult
+                        SeverityFinding = ""
+                    }
+                    $ReportAllResults += $ReportResult
+                }
+            }
+
+            #
+            # Scheduled Task
+            # Edit a scheduled task. First it will be checked if a modification is required
+            #
+            If ($Finding.Method -eq 'ScheduledTask') {
+
+                # Check if the user has admin rights, skip test if not
+                If (-not($IsAdmin)) {
+                    Write-NotAdminError -FindingID $Finding.ID -FindingName $Finding.Name -FindingMethod $Finding.Method
+                    Continue
+                }
+
+                # Check the state of the scheduled task
+                try {
+                    $ResultOutput = Get-ScheduledTask -TaskName $Finding.MethodArgument 2> $null
+                    $Result = $ResultOutput.State
+
+                } catch {
+                    $Result = $Finding.DefaultValue
+                }
+
+                # Check if a modification is requried
+                If ($Result -eq $Finding.RecommendedValue) {
+
+                    # Excellent
+                    $ResultText = "Scheduled Task has alredy the recommended state"
+                    $Message = "ID " + $Finding.ID + ", " + $Finding.Name + ", " + $ResultText
+                    $MessageSeverity = "Passed"
+                    $TestResult = "Passed"
+
+                } Else {
+
+                    If ($Finding.RecommendedValue -eq "Disabled") {
+
+                        $Result = Get-ScheduledTask -TaskName $Finding.MethodArgument | Disable-ScheduledTask
+
+                        $ResultText = "Scheduled Task was disabled"
+                        $Message = "ID " + $Finding.ID + ", " + $Finding.Name + ", " + $ResultText
+                        $MessageSeverity = "Passed"
+                        $TestResult = "Passed"
+
+                    } ElseIf ($Finding.RecommendedValue -eq "Ready") {
+
+                        $Result = Get-ScheduledTask -TaskName $Finding.MethodArgument | Enable-ScheduledTask
+
+                        $ResultText = "Scheduled Task was enabled"
+                        $Message = "ID " + $Finding.ID + ", " + $Finding.Name + ", " + $ResultText
+                        $MessageSeverity = "Passed"
+                        $TestResult = "Passed"
+                    }
+                }
+
+                Write-ResultEntry -Text $Message -SeverityLevel $MessageSeverity
+
+                If ($Log) {
+                    Add-MessageToFile -Text $Message -File $LogFile
+                }
+
+                If ($Report) {
+                    $ReportResult = [ordered] @{
+                        ID = $Finding.ID
+                        Category = $Finding.Category
+                        Name = $Finding.Name
+                        Severity = $MessageSeverity
+                        Result = $ResultText
+                        Recommended = ""
+                        TestResult = $TestResult
+                        SeverityFinding = ""
+                    }
+                    $ReportAllResults += $ReportResult
                 }
             }
         }
@@ -2406,8 +2803,17 @@
                 Add-MessageToFile -Text $Message -File $LogFile
             }
             If ($Report) {
-                $Message = '"' + $Finding.ID + '","' + $Finding.Name + '","' + $MessageSeverity + '","' + $ResultText + '",,"' + $TestResult + '",'
-                Add-MessageToFile -Text $Message -File $ReportFile
+                $ReportResult = [ordered] @{
+                    ID = $Finding.ID
+                    Category = $Finding.Category
+                    Name = $Finding.Name
+                    Severity = $MessageSeverity
+                    Result = $ResultText
+                    Recommended = ""
+                    TestResult = $TestResult
+                    SeverityFinding = ""
+                }
+                $ReportAllResults += $ReportResult
             }
         } ElseIf ($ProcessmitigationEnableArray.Count -gt 0 -and $ProcessmitigationDisableArray.Count -eq 0) {
             $ResultText = "Process mitigation settings set"
@@ -2432,8 +2838,17 @@
                 Add-MessageToFile -Text $Message -File $LogFile
             }
             If ($Report) {
-                $Message = '"' + $Finding.ID + '","' + $Finding.Name + '","' + $MessageSeverity + '","' + $ResultText + '",,"' + $TestResult + '",'
-                Add-MessageToFile -Text $Message -File $ReportFile
+                $ReportResult = [ordered] @{
+                    ID = $Finding.ID
+                    Category = $Finding.Category
+                    Name = $Finding.Name
+                    Severity = $MessageSeverity
+                    Result = $ResultText
+                    Recommended = ""
+                    TestResult = $TestResult
+                    SeverityFinding = ""
+                }
+                $ReportAllResults += $ReportResult
             }
         } ElseIf ($ProcessmitigationEnableArray.Count -eq 0 -and $ProcessmitigationDisableArray.Count -gt 0) {
             $ResultText = "Process mitigation settings set"
@@ -2458,14 +2873,39 @@
                 Add-MessageToFile -Text $Message -File $LogFile
             }
             If ($Report) {
-                $Message = '"' + $Finding.ID + '","' + $Finding.Name + '","' + $MessageSeverity + '","' + $ResultText + '",,"' + $TestResult + '",'
-                Add-MessageToFile -Text $Message -File $ReportFile
+                $ReportResult = [ordered] @{
+                    ID = $Finding.ID
+                    Category = $Finding.Category
+                    Name = $Finding.Name
+                    Severity = $MessageSeverity
+                    Result = $ResultText
+                    Recommended = ""
+                    TestResult = $TestResult
+                    SeverityFinding = ""
+                }
+                $ReportAllResults += $ReportResult
             }
         }
     }
 
     Write-Output "`n"
     Write-ProtocolEntry -Text "HardeningKitty is done" -LogLevel "Info"
+
+    # Write report file
+    If ($Report) {
+        ForEach ($ReportResult in $ReportAllResults) {
+            $ResultObject = [pscustomobject] $ReportResult
+            $ResultObject | Export-Csv -Path $ReportFile -Delimiter "," -NoTypeInformation -Append
+        }
+    }
+
+    # Write backup file
+    If ($Backup) {
+        ForEach ($BackupResult in $BackupAllResults) {
+            $BackupObject = [pscustomobject] $BackupResult
+            $BackupObject | Export-Csv -Path $BackupFile -Delimiter "," -NoTypeInformation -Append
+        }
+    }
 
     If ($Mode -eq "Audit") {
 
